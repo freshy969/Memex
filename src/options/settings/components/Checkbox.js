@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import styles from './Checkbox.css'
 
 const Checkbox = ({ children, handleChange, isChecked }) => (
-    <div>
+    <div className={styles.container}>
         <input
             className={styles.checkbox}
             type="checkbox"
