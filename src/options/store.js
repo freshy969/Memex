@@ -9,6 +9,7 @@ import * as privacy from './privacy'
 import * as overviewPage from '../overview'
 import { reducer as onboarding } from '../overview/onboarding'
 import { reducer as filters } from '../overview/filters'
+import { reducer as settings } from './settings'
 
 const rootReducer = combineReducers({
     blacklist: blacklist.reducer,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     overview: overviewPage.reducer,
     onboarding,
     filters,
+    settings,
 })
 
 const rootEpic = combineEpics(...Object.values(overviewPage.epics))
