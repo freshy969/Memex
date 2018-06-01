@@ -15,6 +15,7 @@ export interface Props {
     toggleVisits: CheckboxToggle
     toggleBookmarks: CheckboxToggle
     toggleLinks: CheckboxToggle
+    handleVisitDelayChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
 }
 
 class IndexingPrefs extends React.PureComponent<Props> {
@@ -40,6 +41,7 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     <input
                         type="number"
                         value={this.props.visitDelay}
+                        onChange={this.props.handleVisitDelayChange}
                         min={2}
                         max={10}
                     />{' '}
