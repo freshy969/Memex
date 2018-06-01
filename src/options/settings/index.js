@@ -1,3 +1,12 @@
-import SearchInjectionContainer from './components/SearchInjectionContainer'
+import React from 'react'
 
-export default SearchInjectionContainer
+import { Wrapper } from '../../common-ui/components'
+import SearchInjectionContainer from './components/SearchInjectionContainer'
+import IndexingPrefs from './components/IndexingPrefs'
+
+export default () => (
+    <Wrapper>
+        <SearchInjectionContainer />
+        <IndexingPrefs />
+    </Wrapper>
+)
