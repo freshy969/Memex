@@ -1,11 +1,7 @@
 import * as React from 'react'
 
-import Checkbox from './Checkbox'
+import Checkbox, { CheckboxToggle } from './Checkbox'
 const styles = require('./Settings.css')
-
-export type CheckboxToggle = (
-    event: React.SyntheticEvent<HTMLInputElement>,
-) => void
 
 export interface Props {
     visitDelay: number
@@ -19,13 +15,6 @@ export interface Props {
 }
 
 class IndexingPrefs extends React.PureComponent<Props> {
-    static defaultProps: Partial<Props> = {
-        visitDelay: 2,
-        visits: true,
-        bookmarks: true,
-        memexLinks: true,
-    }
-
     render() {
         return (
             <div>
@@ -36,6 +25,7 @@ class IndexingPrefs extends React.PureComponent<Props> {
                 <Checkbox
                     isChecked={this.props.visits}
                     handleChange={this.props.toggleVisits}
+                    id="index-visits"
                 >
                     All that I stayed on for more than{' '}
                     <input
@@ -50,12 +40,14 @@ class IndexingPrefs extends React.PureComponent<Props> {
                 <Checkbox
                     isChecked={this.props.bookmarks}
                     handleChange={this.props.toggleBookmarks}
+                    id="index-bookmarks"
                 >
                     All that I bookmarked
                 </Checkbox>
                 <Checkbox
                     isChecked={this.props.memexLinks}
                     handleChange={this.props.toggleLinks}
+                    id="index-links"
                 >
                     All that I made Memex.Links on
                 </Checkbox>
