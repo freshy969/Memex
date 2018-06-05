@@ -41,7 +41,7 @@ async function logPageVisit(tab, secsSinceLastVisit = 20) {
             }
         }
 
-        const allowFavIcon = !await searchIndex.domainHasFavIcon(tab.url)
+        const allowFavIcon = !(await searchIndex.domainHasFavIcon(tab.url))
         const analysisRes = await analysePage({ tabId: tab.id, allowFavIcon })
 
         // Don't index full-text in this stage

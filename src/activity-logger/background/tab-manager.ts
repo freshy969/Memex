@@ -3,6 +3,8 @@ import Tab from './tab-state'
 import { NavState } from './types'
 
 export class TabManager {
+    static DEF_LOG_DELAY = 2
+
     private _tabs = new Map<number, Tab>()
 
     get size() {
@@ -82,11 +84,15 @@ export class TabManager {
      * @param {number} id The ID of the tab to set to associate the debounced log with.
      * @param {() => Promise<void>} cb The page log logic to delay.
      */
-    scheduleTabLog(id: number, logCb: Function) {
+    scheduleTabLog(
+        id: number,
+        logCb: Function,
+        delay = TabManager.DEF_LOG_DELAY,
+    ) {
         const tab = this.getTabState(id)
 
         if (tab != null) {
-            tab.scheduleLog(logCb)
+            tab.scheduleLog(logCb, delay)
         }
     }
 

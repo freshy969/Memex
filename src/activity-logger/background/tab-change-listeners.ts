@@ -8,6 +8,7 @@ import { fetchFavIcon } from '../../page-analysis/background/get-fav-icon'
 import { shouldLogTab, updateVisitInteractionData } from './util'
 import { TabState, TabChangeListener } from './types'
 import tabManager from './tab-manager'
+import { STORAGE_KEYS as IDXING_PREF_KEYS } from '../../options/settings/constants'
 
 // `tabs.onUpdated` event fires on tab open - generally takes a few ms, which we can skip attemping visit update
 const fauxVisitThreshold = 100
@@ -48,11 +49,19 @@ export const handleUrl: TabChangeListener = async function(
             await whenPageDOMLoaded({ tabId })
             const indexText = await logPageVisit(tab)
 
+            // Grab visit delay setting from storage. TODO: better way/place to do this?
+            const {
+                [IDXING_PREF_KEYS.VISIT_DELAY]: logDelay,
+            } = await browser.storage.local.get(IDXING_PREF_KEYS.VISIT_DELAY)
+
             // Schedule stage 2 of visit indexing soon after - if user stays on page
-            await tabManager.scheduleTabLog(tabId, () =>
-                whenTabActive({ tabId })
-                    .then(indexText)
-                    .catch(console.error),
+            await tabManager.scheduleTabLog(
+                tabId,
+                () =>
+                    whenTabActive({ tabId })
+                        .then(indexText)
+                        .catch(console.error),
+                logDelay,
             )
         }
     } catch (err) {
