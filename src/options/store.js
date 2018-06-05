@@ -6,19 +6,19 @@ import initSentry from '../util/raven'
 import * as imports from './imports'
 import * as blacklist from './blacklist'
 import * as privacy from './privacy'
+import * as settings from './settings'
 import * as overviewPage from '../overview'
 import { reducer as onboarding } from '../overview/onboarding'
 import { reducer as filters } from '../overview/filters'
-import { reducer as settings } from './settings'
 
 const rootReducer = combineReducers({
     blacklist: blacklist.reducer,
     imports: imports.reducer,
     privacy: privacy.reducer,
     overview: overviewPage.reducer,
+    settings: settings.reducer,
     onboarding,
     filters,
-    settings,
 })
 
 const rootEpic = combineEpics(...Object.values(overviewPage.epics))
@@ -50,6 +50,7 @@ export default function configureStore({ ReduxDevTools = undefined } = {}) {
         overviewPage.enhancer,
         imports.enhancer,
         privacy.enhancer,
+        settings.enhancer,
         applyMiddleware(...middlewares),
     ]
 
