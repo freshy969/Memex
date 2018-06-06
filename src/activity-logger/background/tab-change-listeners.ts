@@ -3,7 +3,7 @@ import noop from 'lodash/noop'
 
 import searchIndex from '../../search'
 import { whenPageDOMLoaded, whenTabActive } from '../../util/tab-events'
-import logPageVisit from './log-page-visit'
+import { logPageVisit, logPageText } from './log-page-visit'
 import { fetchFavIcon } from '../../page-analysis/background/get-fav-icon'
 import { shouldLogTab, updateVisitInteractionData } from './util'
 import { TabState, TabChangeListener } from './types'
@@ -47,7 +47,7 @@ export const handleUrl: TabChangeListener = async function(
         if (await shouldLogTab(tab)) {
             // Run stage 1 of visit indexing
             await whenPageDOMLoaded({ tabId })
-            const indexText = await logPageVisit(tab)
+            await logPageVisit(tab)
 
             // Grab visit delay setting from storage. TODO: better way/place to do this?
             const {
@@ -59,7 +59,7 @@ export const handleUrl: TabChangeListener = async function(
                 tabId,
                 () =>
                     whenTabActive({ tabId })
-                        .then(indexText)
+                        .then(() => logPageText(tab))
                         .catch(console.error),
                 logDelay,
             )

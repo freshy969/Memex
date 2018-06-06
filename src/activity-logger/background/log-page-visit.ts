@@ -1,3 +1,4 @@
+import { Tabs } from 'webextension-polyfill-ts'
 import moment from 'moment'
 
 import tabManager from './tab-manager'
@@ -9,7 +10,7 @@ import searchIndex from '../../search'
  * indexes display data, and searchable title/URL terms, but returns
  * an async callback for manual invocation of text indexing.
  */
-async function logPageVisit(tab, secsSinceLastVisit = 20) {
+export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
     const internalTabState = tabManager.getTabState(tab.id)
 
     // Cannot process if tab not tracked
@@ -34,10 +35,9 @@ async function logPageVisit(tab, secsSinceLastVisit = 20) {
                 console.log('skipping page due to recent visit:', tab.url)
                 tabManager.clearScheduledLog(tab.id)
 
-                return await searchIndex.addVisit(
-                    tab.url,
-                    internalTabState.visitTime,
-                )
+                await searchIndex.addVisit(tab.url, internalTabState.visitTime)
+
+                return
             }
         }
 
@@ -45,7 +45,6 @@ async function logPageVisit(tab, secsSinceLastVisit = 20) {
         const analysisRes = await analysePage({ tabId: tab.id, allowFavIcon })
 
         // Don't index full-text in this stage
-        const contentCopy = { ...analysisRes.content }
         delete analysisRes.content.fullText
 
         console.log('indexing page:', tab.url)
@@ -54,16 +53,20 @@ async function logPageVisit(tab, secsSinceLastVisit = 20) {
             visits: [internalTabState.visitTime],
             rejectNoContent: false,
         })
-
-        // Return function to afford manual invoking text indexing
-        return () =>
-            searchIndex.addPageTerms({
-                pageDoc: { url: tab.url, content: contentCopy },
-            })
     } catch (err) {
         tabManager.clearScheduledLog(tab.id)
         throw err
     }
 }
 
-export default logPageVisit
+export async function logPageText(tab: Tabs.Tab) {
+    const { content } = await analysePage({
+        tabId: tab.id,
+        allowFavIcon: false,
+        allowScreenshot: false,
+    })
+
+    await searchIndex.addPageTerms({
+        pageDoc: { url: tab.url, content },
+    })
+}
