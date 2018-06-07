@@ -4,6 +4,7 @@ import searchIndex from '../../search'
 import { blacklist } from '../../blacklist/background'
 import { isLoggable, getPauseState } from '..'
 import { TabState } from './types'
+import { STORAGE_KEYS as IDXING_PREF_KEYS } from '../../options/settings/constants'
 
 /**
  * Combines all "loggable" conditions for logging on given tab data to determine
@@ -19,7 +20,37 @@ export async function shouldLogTab({ url, incognito }: Tabs.Tab) {
     const isBlacklisted = await blacklist.checkWithBlacklist()
     const isPaused = await getPauseState()
 
-    return !isPaused && !isBlacklisted({ url })
+    if (isPaused || isBlacklisted({ url })) {
+        return false
+    }
+
+    const {
+        [IDXING_PREF_KEYS.BOOKMARKS]: shouldCheckBmTags,
+        [IDXING_PREF_KEYS.LINKS]: shouldCheckLink,
+        [IDXING_PREF_KEYS.VISITS]: shouldLogVisits,
+    } = await browser.storage.local.get([
+        IDXING_PREF_KEYS.BOOKMARKS,
+        IDXING_PREF_KEYS.LINKS,
+        IDXING_PREF_KEYS.VISITS,
+    ])
+
+    let shouldLog = shouldLogVisits
+
+    if (shouldCheckBmTags) {
+        const page = await searchIndex.getPage(url)
+
+        if (page != null) {
+            const hasBmOrTags = !!page.bookmark || !!page.tags.length
+            shouldLog = shouldLog || hasBmOrTags
+        }
+    }
+
+    if (shouldCheckLink) {
+        // TODO: understand direct linking more and implement this properly
+        shouldLog = shouldLog || false
+    }
+
+    return shouldLog
 }
 
 /**
