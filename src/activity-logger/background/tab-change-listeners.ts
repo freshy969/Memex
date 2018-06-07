@@ -3,7 +3,7 @@ import noop from 'lodash/noop'
 
 import searchIndex from '../../search'
 import { whenPageDOMLoaded, whenTabActive } from '../../util/tab-events'
-import { logPageVisit, logPageText } from './log-page-visit'
+import { logPageVisit, logPageDelayed } from './log-page-visit'
 import { fetchFavIcon } from '../../page-analysis/background/get-fav-icon'
 import { shouldLogTab, updateVisitInteractionData } from './util'
 import { TabState, TabChangeListener } from './types'
@@ -45,21 +45,27 @@ export const handleUrl: TabChangeListener = async function(
         await handleVisitEnd(tabId, { url }, tab).catch(noop)
 
         if (await shouldLogTab(tab)) {
-            // Run stage 1 of visit indexing
-            await whenPageDOMLoaded({ tabId })
-            await logPageVisit(tab)
-
             // Grab visit delay setting from storage. TODO: better way/place to do this?
             const {
                 [IDXING_PREF_KEYS.VISIT_DELAY]: logDelay,
-            } = await browser.storage.local.get(IDXING_PREF_KEYS.VISIT_DELAY)
+                [IDXING_PREF_KEYS.STUBS]: shouldLogStubs,
+            } = await browser.storage.local.get([
+                IDXING_PREF_KEYS.VISIT_DELAY,
+                IDXING_PREF_KEYS.STUBS,
+            ])
+
+            // Run stage 1 of visit indexing immediately (skip if user settings)
+            await whenPageDOMLoaded({ tabId })
+            if (shouldLogStubs) {
+                await logPageVisit(tab)
+            }
 
             // Schedule stage 2 of visit indexing soon after - if user stays on page
             await tabManager.scheduleTabLog(
                 tabId,
                 () =>
                     whenTabActive({ tabId })
-                        .then(() => logPageText(tab))
+                        .then(() => logPageDelayed(tab, shouldLogStubs))
                         .catch(console.error),
                 logDelay,
             )

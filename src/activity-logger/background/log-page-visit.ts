@@ -32,12 +32,12 @@ export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
                     ),
                 )
             ) {
-                console.log('skipping page due to recent visit:', tab.url)
                 tabManager.clearScheduledLog(tab.id)
 
-                await searchIndex.addVisit(tab.url, internalTabState.visitTime)
-
-                return
+                return await searchIndex.addVisit(
+                    tab.url,
+                    internalTabState.visitTime,
+                )
             }
         }
 
@@ -47,7 +47,6 @@ export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
         // Don't index full-text in this stage
         delete analysisRes.content.fullText
 
-        console.log('indexing page:', tab.url)
         await searchIndex.addPage({
             pageDoc: { url: tab.url, ...analysisRes },
             visits: [internalTabState.visitTime],
@@ -59,14 +58,28 @@ export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
     }
 }
 
-export async function logPageText(tab: Tabs.Tab) {
-    const { content } = await analysePage({
+export async function logPageDelayed(tab: Tabs.Tab, textOnly = true) {
+    const analysisRes = await analysePage({
         tabId: tab.id,
         allowFavIcon: false,
-        allowScreenshot: false,
+        allowScreenshot: !textOnly,
     })
 
-    await searchIndex.addPageTerms({
-        pageDoc: { url: tab.url, content },
+    const pageDoc = { url: tab.url, ...analysisRes }
+
+    if (textOnly) {
+        return searchIndex.addPageTerms({ pageDoc })
+    }
+
+    const internalTabState = tabManager.getTabState(tab.id)
+
+    // Cannot process if tab not tracked
+    if (internalTabState == null) {
+        return
+    }
+
+    await searchIndex.addPage({
+        pageDoc,
+        visits: [internalTabState.visitTime],
     })
 }
