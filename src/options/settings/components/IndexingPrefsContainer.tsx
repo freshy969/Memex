@@ -8,6 +8,7 @@ import IndexingPrefs, { Props as IndexingPrefsProps } from './IndexingPrefs'
 const mapStateToProps = (state): Partial<IndexingPrefsProps> => ({
     bookmarks: selectors.bookmarks(state),
     memexLinks: selectors.memexLinks(state),
+    stubs: selectors.stubs(state),
     visits: selectors.visits(state),
     visitDelay: selectors.visitDelay(state),
 })
@@ -15,6 +16,7 @@ const mapStateToProps = (state): Partial<IndexingPrefsProps> => ({
 const mapDispatchToProps = (dispatch): Partial<IndexingPrefsProps> => ({
     toggleBookmarks: () => dispatch(acts.toggleBookmarks()),
     toggleLinks: () => dispatch(acts.toggleLinks()),
+    toggleStubs: () => dispatch(acts.toggleStubs()),
     toggleVisits: () => dispatch(acts.toggleVisits()),
     handleVisitDelayChange: ev => {
         const el = ev.target as HTMLInputElement

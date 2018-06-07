@@ -4,13 +4,15 @@ import Checkbox, { CheckboxToggle } from './Checkbox'
 const styles = require('./Settings.css')
 
 export interface Props {
-    visitDelay: number
-    visits: boolean
     bookmarks: boolean
     memexLinks: boolean
-    toggleVisits: CheckboxToggle
+    stubs: boolean
+    visits: boolean
+    visitDelay: number
     toggleBookmarks: CheckboxToggle
     toggleLinks: CheckboxToggle
+    toggleStubs: CheckboxToggle
+    toggleVisits: CheckboxToggle
     handleVisitDelayChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
 }
 
@@ -50,6 +52,13 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     id="index-links"
                 >
                     All that I made Memex.Links on
+                </Checkbox>
+                <Checkbox
+                    isChecked={this.props.stubs}
+                    handleChange={this.props.toggleStubs}
+                    id="index-stubs"
+                >
+                    Make title and url always searchable (recommended)
                 </Checkbox>
                 <p className={styles.subText}>
                     Did you know? You can also blacklist domains and urls.

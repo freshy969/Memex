@@ -16,6 +16,7 @@ function hydrateFromStorage(store: Store<any>) {
 
     hydrate(KEYS.BOOKMARKS, acts.initBookmarks, defs.bookmarks)
     hydrate(KEYS.LINKS, acts.initLinks, defs.memexLinks)
+    hydrate(KEYS.STUBS, acts.initStubs, defs.stubs)
     hydrate(KEYS.VISITS, acts.initVisits, defs.visits)
     hydrate(KEYS.VISIT_DELAY, acts.initVisitDelay, defs.visitDelay)
 }
@@ -27,6 +28,7 @@ function syncToStorage(store: Store<any>) {
         const state = store.getState()
         dump(KEYS.BOOKMARKS, selectors.bookmarks(state))
         dump(KEYS.LINKS, selectors.memexLinks(state))
+        dump(KEYS.STUBS, selectors.stubs(state))
         dump(KEYS.VISITS, selectors.visits(state))
         dump(KEYS.VISIT_DELAY, selectors.visitDelay(state))
     })
