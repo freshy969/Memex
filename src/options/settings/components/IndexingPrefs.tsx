@@ -25,9 +25,9 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     Which websites do you want to make searchable?
                 </h3>
                 <Checkbox
+                    id="index-visits"
                     isChecked={this.props.visits}
                     handleChange={this.props.toggleVisits}
-                    id="index-visits"
                 >
                     All that I stayed on for more than{' '}
                     <input
@@ -40,23 +40,26 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     seconds.
                 </Checkbox>
                 <Checkbox
+                    id="index-bookmarks"
                     isChecked={this.props.bookmarks}
                     handleChange={this.props.toggleBookmarks}
-                    id="index-bookmarks"
+                    isDisabled={this.props.visits}
                 >
                     All that I bookmarked
                 </Checkbox>
                 <Checkbox
+                    id="index-links"
                     isChecked={this.props.memexLinks}
                     handleChange={this.props.toggleLinks}
-                    id="index-links"
+                    isDisabled={this.props.visits}
                 >
                     All that I made Memex.Links on
                 </Checkbox>
                 <Checkbox
+                    id="index-stubs"
                     isChecked={this.props.stubs}
                     handleChange={this.props.toggleStubs}
-                    id="index-stubs"
+                    isDisabled={this.props.visits}
                 >
                     Make title and url always searchable (recommended)
                 </Checkbox>
