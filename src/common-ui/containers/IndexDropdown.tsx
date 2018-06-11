@@ -14,6 +14,7 @@ export interface Props {
     source: 'tag' | 'domain'
     /* The URL to use for dis/associating new tags with; set this to keep in sync with index. */
     url?: string
+    tabId?: number
     /* Tag Filters that are previously present in the location. */
     initFilters?: string[]
     /* Opt. cb to run when new tag added to state. */
@@ -123,7 +124,7 @@ class IndexDropdownContainer extends Component<Props, State> {
 
         try {
             if (this.allowIndexUpdate) {
-                await this.addTagRPC(this.props.url, newTag)
+                await this.addTagRPC({ url: this.props.url, tag: newTag, tabId: this.props.tabId })
             }
             newTags = [newTag, ...this.state.filters]
         } catch (err) {
@@ -156,13 +157,13 @@ class IndexDropdownContainer extends Component<Props, State> {
         try {
             if (tagIndex === -1) {
                 if (this.allowIndexUpdate) {
-                    await this.addTagRPC(this.props.url, tag)
+                    await this.addTagRPC({ url: this.props.url, tag, tabId: this.props.tabId })
                 }
                 this.props.onFilterAdd(tag)
                 tagsReducer = tags => [tag, ...tags]
             } else {
                 if (this.allowIndexUpdate) {
-                    await this.delTagRPC(this.props.url, tag)
+                    await this.delTagRPC({ url: this.props.url, tag, tabId: this.props.tabId })
                 }
                 this.props.onFilterDel(tag)
                 tagsReducer = tags => [
