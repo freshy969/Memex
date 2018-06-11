@@ -10,7 +10,7 @@ import searchIndex from '../../search'
  * indexes display data, and searchable title/URL terms, but returns
  * an async callback for manual invocation of text indexing.
  */
-export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
+export async function logPageStub(tab: Tabs.Tab, secsSinceLastVisit = 20) {
     const internalTabState = tabManager.getTabState(tab.id)
 
     // Cannot process if tab not tracked
@@ -58,7 +58,7 @@ export async function logPageVisit(tab: Tabs.Tab, secsSinceLastVisit = 20) {
     }
 }
 
-export async function logPageDelayed(tab: Tabs.Tab, textOnly = true) {
+export async function logPageVisit(tab: Tabs.Tab, textOnly = true) {
     const analysisRes = await analysePage({
         tabId: tab.id,
         allowFavIcon: false,
