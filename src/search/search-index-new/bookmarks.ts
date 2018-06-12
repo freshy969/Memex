@@ -2,10 +2,7 @@ import { Bookmarks } from 'webextension-polyfill-ts'
 
 import db from '.'
 import normalizeUrl from '../../util/encode-url-for-id'
-import analysePage from '../../page-analysis/background'
-import fetchPageData from '../../page-analysis/background/fetch-page-data'
-import pipeline from './pipeline'
-import { Page } from './models'
+import { createPageFromTab, createPageFromUrl } from './on-demand-indexing'
 
 export async function addBookmark({
     url,
@@ -16,20 +13,10 @@ export async function addBookmark({
     timestamp: number
     tabId: number
 }) {
-    const normalized = normalizeUrl(url)
-    let page = await db.pages.get(normalized)
+    let page = await db.pages.get(normalizeUrl(url))
 
-    // No existing page for BM; need to make new via content-script if `tabId` provided
     if (page == null) {
-        if (tabId == null) {
-            throw new Error(
-                `Page does not exist for URL and no tabID provided to extract content: ${normalized}`,
-            )
-        }
-
-        const analysisRes = await analysePage({ tabId, allowFavIcon: false })
-        const pageDoc = await pipeline({ pageDoc: { ...analysisRes, url } })
-        page = new Page(pageDoc)
+        page = await createPageFromTab({ url, tabId })
     }
 
     return db.transaction('rw', db.tables, async () => {
@@ -40,10 +27,8 @@ export async function addBookmark({
 }
 
 export function delBookmark({ url }: Bookmarks.BookmarkTreeNode) {
-    const normalized = normalizeUrl(url)
-
     return db.transaction('rw', db.tables, async () => {
-        const page = await db.pages.get(normalized)
+        const page = await db.pages.get(normalizeUrl(url))
 
         if (page != null) {
             await page.loadRels()
@@ -68,19 +53,11 @@ export async function handleBookmarkCreation(
     { url }: Bookmarks.BookmarkTreeNode,
 ) {
     try {
-        const normalized = normalizeUrl(url)
-
-        let page = await db.pages.get(normalized)
+        let page = await db.pages.get(normalizeUrl(url))
 
         // No existing page for BM; need to try and make new from a remote DOM fetch
         if (page == null) {
-            const fetch = fetchPageData({
-                url,
-                opts: { includePageContent: true, includeFavIcon: true },
-            })
-
-            const pageData = await fetch.run()
-            page = new Page(await pipeline({ pageDoc: { url, ...pageData } }))
+            page = await createPageFromUrl({ url })
         }
 
         await db.transaction('rw', db.tables, async () => {

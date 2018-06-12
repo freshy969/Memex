@@ -1,9 +1,6 @@
 import db from '.'
 import normalizeUrl from '../../util/encode-url-for-id'
-import analysePage from '../../page-analysis/background'
-import fetchPageData from '../../page-analysis/background/fetch-page-data'
-import pipeline from './pipeline'
-import { Page } from './models'
+import { createPageFromTab } from './on-demand-indexing'
 
 interface Props {
     url: string
@@ -13,27 +10,10 @@ interface Props {
 
 const modifyTag = (shouldAdd: boolean) =>
     async function({ url, tag, tabId }: Props) {
-        const normalized = normalizeUrl(url)
-
-        let page = await db.pages.get(normalized)
+        let page = await db.pages.get(normalizeUrl(url))
 
         if (page == null) {
-            if (tabId == null) {
-                throw new Error(
-                    `Page does not exist for URL and no tabID provided to extract content: ${normalized}`,
-                )
-            }
-
-            const analysisRes = await analysePage({
-                tabId,
-                allowFavIcon: false,
-            })
-
-            const pageDoc = await pipeline({
-                pageDoc: { ...analysisRes, url },
-            })
-
-            page = new Page(pageDoc)
+            page = await createPageFromTab({ url, tabId })
         }
 
         return db.transaction('rw', db.tables, async () => {
