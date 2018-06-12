@@ -1,6 +1,7 @@
 import { createReducer } from 'redux-act'
 
 import * as acts from './actions'
+import { VISIT_DELAY_RANGE } from './constants'
 
 export interface State {
     visits: boolean
@@ -15,7 +16,7 @@ export const defaultState: State = {
     bookmarks: true,
     memexLinks: true,
     stubs: true,
-    visitDelay: 2,
+    visitDelay: VISIT_DELAY_RANGE.DEF,
 }
 
 const toggleState = key => (state: State) => ({

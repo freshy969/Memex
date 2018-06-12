@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { VISIT_DELAY_RANGE } from '../constants'
 import Checkbox, { CheckboxToggle } from './Checkbox'
 const styles = require('./Settings.css')
 
@@ -9,6 +10,8 @@ export interface Props {
     stubs: boolean
     visits: boolean
     visitDelay: number
+    visitDelayMin?: number
+    visitDelayMax?: number
     toggleBookmarks: CheckboxToggle
     toggleLinks: CheckboxToggle
     toggleStubs: CheckboxToggle
@@ -17,6 +20,11 @@ export interface Props {
 }
 
 class IndexingPrefs extends React.PureComponent<Props> {
+    static defaultProps: Partial<Props> = {
+        visitDelayMin: VISIT_DELAY_RANGE.MIN,
+        visitDelayMax: VISIT_DELAY_RANGE.MAX,
+    }
+
     render() {
         return (
             <div>
@@ -34,8 +42,8 @@ class IndexingPrefs extends React.PureComponent<Props> {
                         type="number"
                         value={this.props.visitDelay}
                         onChange={this.props.handleVisitDelayChange}
-                        min={2}
-                        max={10}
+                        min={this.props.visitDelayMin}
+                        max={this.props.visitDelayMax}
                     />{' '}
                     seconds.
                 </Checkbox>
@@ -43,7 +51,6 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     id="index-bookmarks"
                     isChecked={this.props.bookmarks}
                     handleChange={this.props.toggleBookmarks}
-                    isDisabled={this.props.visits}
                 >
                     All that I bookmarked/tagged
                 </Checkbox>
@@ -51,7 +58,6 @@ class IndexingPrefs extends React.PureComponent<Props> {
                     id="index-links"
                     isChecked={this.props.memexLinks}
                     handleChange={this.props.toggleLinks}
-                    isDisabled={this.props.visits}
                 >
                     All that I made Memex.Links on
                 </Checkbox>
