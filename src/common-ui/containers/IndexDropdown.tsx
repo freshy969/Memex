@@ -120,27 +120,27 @@ class IndexDropdownContainer extends Component<Props, State> {
      */
     private addTag = async () => {
         const newTag = this.getSearchVal()
-        let newTags = this.state.filters
+        const newTags = [newTag, ...this.state.filters]
 
-        try {
-            if (this.allowIndexUpdate) {
-                await this.addTagRPC({ url: this.props.url, tag: newTag, tabId: this.props.tabId })
-            }
-            newTags = [newTag, ...this.state.filters]
-        } catch (err) {
-            console.error(err)
-        } finally {
-            this.inputEl.focus()
-            this.setState(state => ({
-                ...state,
-                searchVal: '',
-                filters: newTags,
-                displayFilters: newTags,
-                focused: 0,
-            }))
-            this.props.onFilterAdd(newTag)
-            updateLastActive() // Consider user active (analytics)
+        if (this.allowIndexUpdate) {
+            this.addTagRPC({
+                url: this.props.url,
+                tag: newTag,
+                tabId: this.props.tabId,
+            }).catch(console.error)
         }
+
+        this.inputEl.focus()
+        this.setState(state => ({
+            ...state,
+            searchVal: '',
+            filters: newTags,
+            displayFilters: newTags,
+            focused: 0,
+        }))
+
+        this.props.onFilterAdd(newTag)
+        updateLastActive() // Consider user active (analytics)
     }
 
     /**
@@ -154,33 +154,40 @@ class IndexDropdownContainer extends Component<Props, State> {
         let tagsReducer: (filters: string[]) => string[] = t => t
 
         // Either add or remove it to the main `state.tags` array
-        try {
-            if (tagIndex === -1) {
-                if (this.allowIndexUpdate) {
-                    await this.addTagRPC({ url: this.props.url, tag, tabId: this.props.tabId })
-                }
-                this.props.onFilterAdd(tag)
-                tagsReducer = tags => [tag, ...tags]
-            } else {
-                if (this.allowIndexUpdate) {
-                    await this.delTagRPC({ url: this.props.url, tag, tabId: this.props.tabId })
-                }
-                this.props.onFilterDel(tag)
-                tagsReducer = tags => [
-                    ...tags.slice(0, tagIndex),
-                    ...tags.slice(tagIndex + 1),
-                ]
+        if (tagIndex === -1) {
+            if (this.allowIndexUpdate) {
+                this.addTagRPC({
+                    url: this.props.url,
+                    tag,
+                    tabId: this.props.tabId,
+                }).catch(console.error)
             }
-        } catch (err) {
-            console.error(err)
-        } finally {
-            this.setState(state => ({
-                ...state,
-                filters: tagsReducer(state.filters),
-                focused: index,
-            }))
-            updateLastActive() // Consider user active (analytics)
+
+            this.props.onFilterAdd(tag)
+            tagsReducer = tags => [tag, ...tags]
+        } else {
+            if (this.allowIndexUpdate) {
+                this.delTagRPC({
+                    url: this.props.url,
+                    tag,
+                    tabId: this.props.tabId,
+                }).catch(console.error)
+            }
+
+            this.props.onFilterDel(tag)
+            tagsReducer = tags => [
+                ...tags.slice(0, tagIndex),
+                ...tags.slice(tagIndex + 1),
+            ]
         }
+
+        this.setState(state => ({
+            ...state,
+            filters: tagsReducer(state.filters),
+            focused: index,
+        }))
+
+        updateLastActive() // Consider user active (analytics)
     }
 
     private handleSearchEnterPress(
