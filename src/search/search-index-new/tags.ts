@@ -1,6 +1,6 @@
 import db from '.'
-import normalizeUrl from '../../util/encode-url-for-id'
 import { createPageFromTab } from './on-demand-indexing'
+import { getPage } from './util'
 
 interface Props {
     url: string
@@ -10,27 +10,24 @@ interface Props {
 
 const modifyTag = (shouldAdd: boolean) =>
     async function({ url, tag, tabId }: Props) {
-        let page = await db.pages.get(normalizeUrl(url))
+        let page = await getPage(url)
 
         if (page == null) {
             page = await createPageFromTab({ url, tabId })
         }
 
-        return db.transaction('rw', db.tables, async () => {
-            await page.loadRels()
+        // Add new visit if none, else page won't appear in results
+        if (!page.visits.length) {
+            page.addVisit()
+        }
 
-            if (!page.visits.length) {
-                page.addVisit() // Add new visit if none, else page won't appear in results
-            }
+        if (shouldAdd) {
+            page.addTag(tag)
+        } else {
+            page.delTag(tag)
+        }
 
-            if (shouldAdd) {
-                page.addTag(tag)
-            } else {
-                page.delTag(tag)
-            }
-
-            await page.save()
-        })
+        await page.save()
     }
 
 export const delTag = modifyTag(false)

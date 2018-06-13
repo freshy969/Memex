@@ -1,8 +1,8 @@
 import { Bookmarks } from 'webextension-polyfill-ts'
 
 import db from '.'
-import normalizeUrl from '../../util/encode-url-for-id'
 import { createPageFromTab, createPageFromUrl } from './on-demand-indexing'
+import { getPage } from './util'
 
 export async function addBookmark({
     url,
@@ -13,35 +13,29 @@ export async function addBookmark({
     timestamp: number
     tabId: number
 }) {
-    let page = await db.pages.get(normalizeUrl(url))
+    let page = await getPage(url)
 
     if (page == null) {
         page = await createPageFromTab({ url, tabId })
     }
 
-    return db.transaction('rw', db.tables, async () => {
-        await page.loadRels()
-        page.setBookmark(timestamp)
-        await page.save()
-    })
+    page.setBookmark(timestamp)
+    await page.save()
 }
 
-export function delBookmark({ url }: Bookmarks.BookmarkTreeNode) {
-    return db.transaction('rw', db.tables, async () => {
-        const page = await db.pages.get(normalizeUrl(url))
+export async function delBookmark({ url }: Bookmarks.BookmarkTreeNode) {
+    const page = await getPage(url)
 
-        if (page != null) {
-            await page.loadRels()
-            page.delBookmark()
+    if (page != null) {
+        page.delBookmark()
 
-            // Delete if Page left orphaned, else just save current state
-            if (page.shouldDelete) {
-                await page.delete()
-            } else {
-                await page.save()
-            }
+        // Delete if Page left orphaned, else just save current state
+        if (page.shouldDelete) {
+            await page.delete()
+        } else {
+            await page.save()
         }
-    })
+    }
 }
 
 /**
@@ -53,18 +47,15 @@ export async function handleBookmarkCreation(
     { url }: Bookmarks.BookmarkTreeNode,
 ) {
     try {
-        let page = await db.pages.get(normalizeUrl(url))
+        let page = await getPage(url)
 
         // No existing page for BM; need to try and make new from a remote DOM fetch
         if (page == null) {
             page = await createPageFromUrl({ url })
         }
 
-        await db.transaction('rw', db.tables, async () => {
-            await page.loadRels()
-            page.setBookmark()
-            await page.save()
-        })
+        page.setBookmark()
+        await page.save()
     } catch (err) {
         console.error(err)
     }
