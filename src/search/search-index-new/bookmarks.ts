@@ -1,7 +1,7 @@
 import { Bookmarks } from 'webextension-polyfill-ts'
 
 import db from '.'
-import { createPageFromTab, createPageFromUrl } from './on-demand-indexing'
+import createPageOnDemand from './on-demand-indexing'
 import { getPage } from './util'
 
 export async function addBookmark({
@@ -10,13 +10,13 @@ export async function addBookmark({
     tabId,
 }: {
     url: string
-    timestamp: number
-    tabId: number
+    timestamp?: number
+    tabId?: number
 }) {
     let page = await getPage(url)
 
-    if (page == null) {
-        page = await createPageFromTab({ url, tabId })
+    if (page == null || page.isStub) {
+        page = await createPageOnDemand({ url, tabId })
     }
 
     page.setBookmark(timestamp)
@@ -47,15 +47,7 @@ export async function handleBookmarkCreation(
     { url }: Bookmarks.BookmarkTreeNode,
 ) {
     try {
-        let page = await getPage(url)
-
-        // No existing page for BM; need to try and make new from a remote DOM fetch
-        if (page == null) {
-            page = await createPageFromUrl({ url })
-        }
-
-        page.setBookmark()
-        await page.save()
+        await addBookmark({ url })
     } catch (err) {
         console.error(err)
     }

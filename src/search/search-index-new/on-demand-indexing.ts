@@ -6,11 +6,13 @@ import { Page } from './models'
 interface Props {
     url: string
     tabId?: number
+    stubOnly?: boolean
 }
 
 export async function createPageFromTab({
     url,
     tabId,
+    stubOnly = false,
     ...pageAnalysisArgs
 }: Props) {
     if (tabId == null) {
@@ -23,12 +25,20 @@ export async function createPageFromTab({
         ...pageAnalysisArgs,
     })
 
+    if (stubOnly && analysisRes.content) {
+        delete analysisRes.content.fullText
+    }
+
     const pageData = await pipeline({ pageDoc: { ...analysisRes, url } })
 
     return new Page(pageData)
 }
 
-export async function createPageFromUrl({ url, ...fetchDataArgs }: Props) {
+export async function createPageFromUrl({
+    url,
+    stubOnly = false,
+    ...fetchDataArgs
+}: Props) {
     const fetchRes = await fetchPageData({
         url,
         opts: {
@@ -38,7 +48,22 @@ export async function createPageFromUrl({ url, ...fetchDataArgs }: Props) {
         },
     }).run()
 
+    if (stubOnly && fetchRes.content) {
+        delete fetchRes.content.fullText
+    }
+
     const pageData = await pipeline({ pageDoc: { ...fetchRes, url } })
 
     return new Page(pageData)
+}
+
+/**
+ * Decides which type of on-demand page indexing logic to run based on given props.
+ */
+export default function(props: Props) {
+    if (props.tabId) {
+        return createPageFromTab(props)
+    }
+
+    return createPageFromUrl(props)
 }

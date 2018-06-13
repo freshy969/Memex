@@ -1,19 +1,19 @@
 import db from '.'
-import { createPageFromTab } from './on-demand-indexing'
+import createPageOnDemand from './on-demand-indexing'
 import { getPage } from './util'
 
 interface Props {
     url: string
     tag: string
-    tabId: number
+    tabId?: number
 }
 
 const modifyTag = (shouldAdd: boolean) =>
     async function({ url, tag, tabId }: Props) {
         let page = await getPage(url)
 
-        if (page == null) {
-            page = await createPageFromTab({ url, tabId })
+        if (page == null || page.isStub) {
+            page = await createPageOnDemand({ url, tabId })
         }
 
         // Add new visit if none, else page won't appear in results
