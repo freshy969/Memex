@@ -29,7 +29,10 @@ export async function createPageFromTab({
         delete analysisRes.content.fullText
     }
 
-    const pageData = await pipeline({ pageDoc: { ...analysisRes, url } })
+    const pageData = await pipeline({
+        pageDoc: { ...analysisRes, url },
+        rejectNoContent: !stubOnly,
+    })
 
     return new Page(pageData)
 }
@@ -52,7 +55,10 @@ export async function createPageFromUrl({
         delete fetchRes.content.fullText
     }
 
-    const pageData = await pipeline({ pageDoc: { ...fetchRes, url } })
+    const pageData = await pipeline({
+        pageDoc: { ...fetchRes, url },
+        rejectNoContent: !stubOnly,
+    })
 
     return new Page(pageData)
 }

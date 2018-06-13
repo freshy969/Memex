@@ -35,16 +35,17 @@ export default class DirectLinkingStorage extends FeatureStorage {
         })
     }
 
-    async attemptIndexingFromTab({ id, url }: Tabs.Tab) {
+    async indexPageFromTab({ id, url }: Tabs.Tab) {
         const {
-            [IDXING_PREF_KEYS.LINKS]: shouldIndex,
+            [IDXING_PREF_KEYS.LINKS]: fullyIndexLinks,
         } = await browser.storage.local.get(IDXING_PREF_KEYS.LINKS)
 
-        if (!shouldIndex) {
-            return
-        }
+        const page = await createPageFromTab({
+            tabId: id,
+            url,
+            stubOnly: !fullyIndexLinks,
+        })
 
-        const page = await createPageFromTab({ tabId: id, url })
         await page.loadRels()
 
         // Add new visit if none, else page won't appear in results

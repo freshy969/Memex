@@ -54,7 +54,7 @@ export default class DirectLinkingBackground {
         })
 
         // Attempt to (re-)index, if user preference set, but don't wait for it
-        this.storage.attemptIndexingFromTab(tab)
+        this.storage.indexPageFromTab(tab)
 
         return result
     }
