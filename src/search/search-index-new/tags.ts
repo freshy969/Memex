@@ -1,5 +1,5 @@
 import db from '.'
-import createPageOnDemand from './on-demand-indexing'
+import { createPageViaBmTagActs } from './on-demand-indexing'
 import { getPage } from './util'
 
 interface Props {
@@ -13,7 +13,7 @@ const modifyTag = (shouldAdd: boolean) =>
         let page = await getPage(url)
 
         if (page == null || page.isStub) {
-            page = await createPageOnDemand({ url, tabId })
+            page = await createPageViaBmTagActs({ url, tabId })
         }
 
         // Add new visit if none, else page won't appear in results

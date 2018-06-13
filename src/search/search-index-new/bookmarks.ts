@@ -1,7 +1,7 @@
 import { Bookmarks } from 'webextension-polyfill-ts'
 
 import db from '.'
-import createPageOnDemand from './on-demand-indexing'
+import { createPageViaBmTagActs } from './on-demand-indexing'
 import { getPage } from './util'
 
 export async function addBookmark({
@@ -16,7 +16,7 @@ export async function addBookmark({
     let page = await getPage(url)
 
     if (page == null || page.isStub) {
-        page = await createPageOnDemand({ url, tabId })
+        page = await createPageViaBmTagActs({ url, tabId })
     }
 
     page.setBookmark(timestamp)

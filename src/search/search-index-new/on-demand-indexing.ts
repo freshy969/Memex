@@ -1,7 +1,10 @@
+import { browser } from 'webextension-polyfill-ts'
+
 import analysePage from '../../page-analysis/background'
 import fetchPageData from '../../page-analysis/background/fetch-page-data'
 import pipeline from './pipeline'
 import { Page } from './models'
+import { STORAGE_KEYS as IDXING_PREF_KEYS } from '../../options/settings/constants'
 
 interface Props {
     url: string
@@ -65,11 +68,17 @@ export async function createPageFromUrl({
 
 /**
  * Decides which type of on-demand page indexing logic to run based on given props.
+ * Also sets the `stubOnly` option based on user bookmark/tag indexing pref.
+ * TODO: Better name?
  */
-export default function(props: Props) {
+export async function createPageViaBmTagActs(props: Props) {
+    const {
+        [IDXING_PREF_KEYS.BOOKMARKS]: fullyIndex,
+    } = await browser.storage.local.get(IDXING_PREF_KEYS.BOOKMARKS)
+
     if (props.tabId) {
-        return createPageFromTab(props)
+        return await createPageFromTab({ stubOnly: !fullyIndex, ...props })
     }
 
-    return createPageFromUrl(props)
+    return await createPageFromUrl({ stubOnly: !fullyIndex, ...props })
 }
